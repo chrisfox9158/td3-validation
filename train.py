@@ -1,60 +1,39 @@
 # Library imports
 import numpy as np
-import os
-import datetime
+import gymnasium as gym
 
 # Local imports
-from env.gripper_env import GripperEnv
-from env import observations, rewards
 from agent.td3 import TD3
 from agent.noise_schedule import NoiseSchedule
-from training_logs.run_logger import RunLogger
-from training_logs.run_export import export_run
-from config import HARDWARE
-from config import AGENT_SPECS
-from config import TRAINING_SPECS
+from config import AGENT_SPECS, TRAINING_SPECS
 
-run_dir = os.path.join("runs", datetime.datetime.now().strftime("%Y_%m_%d__%H_%M_%S"))
+env = gym.make("Pendulum-v1")
+obs_dim = env.observation_space.shape[0]
+action_dim = env.action_space.shape[0]
+action_scale = float(env.action_space.high[0])  # Pendulum's range is [-2, 2]; actor outputs [-1, 1]
 
-# Setup
-env = GripperEnv(
-    xml_path="three_finger_two_joint_gripper.xml",
-    obs_extractors=[observations.obs_joint_angles, observations.obs_touch_sensors, observations.obs_joint_velocities],
-    reward_terms=[rewards.reward_drop_penalty, rewards.reward_crush_penalty,
-                  rewards.reward_grasp, rewards.reward_distance,
-                  rewards.reward_lift, rewards.reward_success]
-)
+agent = TD3(obs_dim, action_dim, hardware_name="pendulum-v1")
 
-initial_obs = env.reset()
-obs_dim = env.obs_dim
-action_dim = env.action_dim
-hardware_name = HARDWARE["hardware_name"]
-
-agent = TD3(obs_dim, action_dim, hardware_name)
-term_names = ["drop", "crush", "grasp", "distance", "lift", "success"]
-
-# Episode loop
 total_steps = 0
-logger = RunLogger()
 for episode in range(TRAINING_SPECS["num_episodes"]):
-    obs = env.reset()
+    obs, _ = env.reset()
     episode_reward = 0
     episode_steps = 0
-    term_totals = {name: 0.0 for name in term_names}
-    noise_scale = TRAINING_SPECS["noise_start"]  # default during warmup, overwritten once policy-driven actions begin
+    noise_scale = TRAINING_SPECS["noise_start"]
 
     while True:
         if total_steps < TRAINING_SPECS["warmup_steps"]:
-            action = np.random.uniform(-1, 1, size=action_dim)
+            raw_action = np.random.uniform(-1, 1, size=action_dim)
         else:
             noise_scale = NoiseSchedule.exponential_noise_decay(episode, TRAINING_SPECS["noise_start"], TRAINING_SPECS["noise_end"], TRAINING_SPECS["noise_decay_rate"])
-            action = agent.select_action(obs, noise_scale=noise_scale)
+            raw_action = agent.select_action(obs, noise_scale=noise_scale)
 
-        next_obs, reward, done = env.step(action)
-        for name, value in env.last_reward_breakdown.items():
-            term_totals[name] = term_totals.get(name, 0.0) + value
+        env_action = raw_action * action_scale  # scale [-1,1] actor output into Pendulum's [-2,2] range
 
-        agent.replay_buffer.add(obs, action, reward, next_obs, done)
+        next_obs, reward, terminated, truncated, _ = env.step(env_action)
+        done = terminated or truncated
+
+        agent.replay_buffer.add(obs, raw_action, reward, next_obs, done)  # store the raw [-1,1] action only
 
         obs = next_obs
         episode_reward += reward
@@ -66,14 +45,7 @@ for episode in range(TRAINING_SPECS["num_episodes"]):
 
         if done:
             break
-    
-    if episode % 100 == 0:
-        export_run(logger, run_dir)
-        checkpoint_dir = os.path.join(run_dir, "checkpoints")
-        os.makedirs(checkpoint_dir, exist_ok=True)
-        agent.save(os.path.join(checkpoint_dir, "checkpoint.pt"), os.path.join(checkpoint_dir, "metadata.json"), obs_dim, action_dim, hardware_name)
 
-    logger.log_episode(episode, episode_reward, term_totals, episode_steps, env.info, noise_scale)
+    print(f"Episode {episode}: reward= {episode_reward:.2f}, steps= {episode_steps}")
 
-    term_str = "  ".join(f"{name}={term_totals[name]:.2f}" for name in term_names)
-    print(f"Episode {episode}: reward= {episode_reward:.2f}, steps= {total_steps}")
+env.close()
