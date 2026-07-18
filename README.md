@@ -45,7 +45,7 @@ Produces `runs/<timestamp>/summary.json`, `convergence.png`, and `final_distribu
 
 ```
 agent/              # Copied directly from mujoco-gripper-rl (networks, replay buffer, TD3 orchestration)
-config.py            # AGENT_SPECS / TRAINING_SPECS for run tuning
-train.py              # Pendulum-v1 training loop + run logging
-runs/                  # Output of each training run (JSON + plots)
+config.py           # AGENT_SPECS / TRAINING_SPECS for run tuning
+train.py            # Pendulum-v1 training loop + run logging
+runs/               # Output of each training run (JSON + plots)
 ```
