@@ -12,8 +12,8 @@ AGENT_SPECS = {
 }
 
 TRAINING_SPECS = {
-    "num_episodes": 2000,
-    "warmup_steps": 5000,
+    "num_episodes": 500,
+    "warmup_steps": 1000,
     "noise_start": 0.3,
     "noise_end": 0.05,
     "noise_decay_rate": 0.002,
