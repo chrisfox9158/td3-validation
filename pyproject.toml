@@ -1,7 +1,7 @@
-[project]
+[TD3 RL Validation]
 name = "td3-validation"
 version = "0.1.0"
-description = "Add your description here"
+description = "Isolated validation of a custom TD3 implementation against Gymnasium's Pendulum-v1."
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
