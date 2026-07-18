@@ -1,7 +1,7 @@
 # TD3 Agent Validation with Pendulum-v1
 
 ## Purpose
-This is a minimal, disposable sister repo to [mujoco-gripper-rl](https://github.com/chrisfox9158/mujoco-gripper-rl). The repo is designed to validate the existing TD3 implementation independent of the MuJoCo environment's difficulty, parameters, and reward design.
+This is a minimal, adjacent repo to [mujoco-gripper-rl](https://github.com/chrisfox9158/mujoco-gripper-rl). The repo is designed to validate the existing TD3 implementation independent of the MuJoCo environment's difficulty, parameters, and reward design.
 
 The MuJoCo project's custom `agent/` code, which implements `Actor`/`Critic` networks, a pre-allocated NumPy `ReplayBuffer`, and the full `TD3` class architecture (twin critics, delayed policy updates, target policy smoothing, soft target updates) is copied here. The architecture is unmodified beyond the removal of the `save()`/`load()` methods and the `loader/` folder convention, replaced by the training loop's matplotlib-based logger.
 
