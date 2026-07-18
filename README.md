@@ -25,3 +25,27 @@ Agentic structure implements TD3 strategy, matching the twin-critic and delayed-
 The implemented Gymnasium Pendulum-v1 environment is maintained and documented at [gymnasium.farama.org](https://gymnasium.farama.org/environments/classic_control/pendulum/).
 
 The reward convergence range of **-100 to -250** is consistent with the [Stable-Baselines3 RL Zoo](https://github.com/DLR-RM/rl-baselines3-zoo/blob/master/benchmark.md) benchmarks for the Pendulum-v1 environment, documented at **-151.855 ± 90.227** over 20,000 timesteps. Additional documentation can be found at [Hugging Face Stable-Baselines3 TD3 Pendulum-v1](https://huggingface.co/sb3/td3-Pendulum-v1).
+
+## Setup
+```bash
+uv venv
+uv sync
+```
+
+## Usage
+Run the validation training loop:
+
+```bash
+uv run python train.py
+```
+
+Produces `runs/<timestamp>/summary.json`, `convergence.png`, and `final_distribution.png`.
+
+## Repository Structure
+
+```
+agent/              # Copied directly from mujoco-gripper-rl (networks, replay buffer, TD3 orchestration)
+config.py            # AGENT_SPECS / TRAINING_SPECS for run tuning
+train.py              # Pendulum-v1 training loop + run logging
+runs/                  # Output of each training run (JSON + plots)
+```
