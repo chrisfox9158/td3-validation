@@ -1,4 +1,4 @@
-[TD3 RL Validation]
+[project]
 name = "td3-validation"
 version = "0.1.0"
 description = "Isolated validation of a custom TD3 implementation against Gymnasium's Pendulum-v1."
